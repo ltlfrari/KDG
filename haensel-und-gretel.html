@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hänsel und Gretel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0 16px 4rem; background:#faf6ee; color:#2b2b2b; font-family:"Lora",Georgia,serif; }
+    header { text-align:center; padding:2rem 0 1rem; }
+    h1 { font-family:"Playfair Display",Georgia,serif; font-size:2.5rem; margin:0 0 .4rem; }
+    .sub { font-style:italic; font-size:1.25rem; color:#6b5b4b; margin:0; }
+    .back { display:block; text-align:center; margin:.5rem 0 1.5rem; color:#6b5b4b; }
+    main { max-width:42rem; margin:0 auto; font-size:1.3rem; line-height:2.2; }
+    .s { display:block; margin-bottom:.6rem; }
+    .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
+    .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
+    .w { cursor:pointer; border-radius:4px; padding:0 1px; }
+    .w:hover { background:#f1dfb8; }
+    #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
+           border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.2); padding:.6rem .8rem;
+           font-size:1.05rem; line-height:1.5; max-width:min(22rem,86vw); }
+    #pop .de { font-weight:bold; margin-right:.3rem; }
+    @media (max-width:480px){ h1{font-size:1.8rem;} main{font-size:1.15rem;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Hänsel und Gretel</h1>
+    <p class="sub">Hansel and Gretel</p>
+  </header>
+  <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
+  <main id="story"></main>
+  <section id="quiz"></section>
+  <div id="pop"></div>
+
+<script>
+/* ===== STORY DATA (edit this block when updating a story) ===== */
+const STORY = {
+  level: "A1-A2",
+  titleDe: "Hänsel und Gretel",
+  titleEn: "Hansel and Gretel",
+  sentences: [
+    { de: "Hänsel und Gretel sind Bruder und Schwester.", en: "Hansel and Gretel are brother and sister." },
+    { de: "Sie wohnen mit dem Vater und der Mutter in einem Haus am Wald.", en: "They live with their father and mother in a house by the forest." },
+    { de: "Die Familie ist arm und hat nur wenig Brot.", en: "The family is poor and has only a little bread." },
+    { de: "Eines Tages bringt der Vater die Kinder tief in den Wald.", en: "One day the father takes the children deep into the forest." },
+    { de: "Dort lässt er sie allein.", en: "There he leaves them alone." },
+    { de: "Die Kinder haben Hunger und sind müde.", en: "The children are hungry and tired." },
+    { de: "Plötzlich sehen sie ein kleines Haus.", en: "Suddenly they see a little house." },
+    { de: "Das Haus ist aus Brot, Kuchen und Zucker!", en: "The house is made of bread, cake and sugar!" },
+    { de: "Die Kinder essen ein Stück vom Dach.", en: "The children eat a piece of the roof." },
+    { de: "Da kommt eine alte Frau aus dem Haus.", en: "Then an old woman comes out of the house." },
+    { de: "Sie ist eine Hexe und sperrt Hänsel in einen Käfig.", en: "She is a witch and locks Hansel in a cage." },
+    { de: "Gretel muss für die Hexe arbeiten.", en: "Gretel has to work for the witch." },
+    { de: "Eines Tages schiebt Gretel die Hexe in den Ofen.", en: "One day Gretel pushes the witch into the oven." },
+    { de: "Dann macht sie Hänsel frei, und die Kinder laufen nach Hause.", en: "Then she sets Hansel free, and the children run home." },
+    { de: "Der Vater freut sich sehr, und die Familie ist wieder zusammen.", en: "The father is very happy, and the family is together again." }
+  ],
+  questions: [
+    { q: "Wo wohnt die Familie?", options: ["Am Wald", "In der Stadt", "Am Meer"], answer: 0 },
+    { q: "Woraus ist das kleine Haus?", options: ["Aus Holz", "Aus Stein", "Aus Brot, Kuchen und Zucker"], answer: 2 },
+    { q: "Wer ist die alte Frau?", options: ["Die Mutter", "Eine Hexe", "Eine Lehrerin"], answer: 1 },
+    { q: "Was macht Gretel mit der Hexe?", options: ["Sie schiebt sie in den Ofen", "Sie gibt ihr Brot", "Sie läuft weg"], answer: 0 }
+  ],
+  glossary: {
+    "hänsel": "Hansel (name)", "und": "and", "gretel": "Gretel (name)", "sind": "are", "bruder": "brother",
+    "schwester": "sister", "sie": "they / she / them", "wohnen": "live (reside)", "mit": "with",
+    "dem": "the (dative)", "vater": "father", "der": "the (masc.)", "mutter": "mother", "in": "in / into",
+    "einem": "a (dative)", "haus": "house", "am": "at the / by the", "wald": "forest", "die": "the (fem./plural)",
+    "familie": "family", "ist": "is", "arm": "poor", "hat": "has", "nur": "only", "wenig": "little / few",
+    "brot": "bread", "eines": "one (eines Tages = one day)", "tages": "day (eines Tages = one day)",
+    "bringt": "brings / takes", "kinder": "children", "tief": "deep", "den": "the (accusative)",
+    "dort": "there", "lässt": "leaves / lets", "er": "he", "allein": "alone", "haben": "have",
+    "hunger": "hunger", "müde": "tired", "plötzlich": "suddenly", "sehen": "see", "ein": "a",
+    "kleines": "little / small", "das": "the (neut.)", "aus": "from / made of", "kuchen": "cake",
+    "zucker": "sugar", "essen": "eat", "stück": "piece", "vom": "of the / from the", "dach": "roof",
+    "da": "then / there", "kommt": "comes", "alte": "old", "frau": "woman", "eine": "a (fem.)",
+    "hexe": "witch", "sperrt": "locks (in)", "einen": "a (accusative)", "käfig": "cage",
+    "muss": "must / has to", "für": "for", "arbeiten": "to work", "schiebt": "pushes", "ofen": "oven",
+    "dann": "then", "macht": "makes / does", "frei": "free (macht frei = sets free)", "laufen": "run",
+    "nach": "to / after", "hause": "home (nach Hause = (to) home)", "freut": "is glad (sich freuen = to be happy)",
+    "sich": "(reflexive) himself / herself", "sehr": "very", "wieder": "again", "zusammen": "together",
+    "wo": "where", "wohnt": "lives", "woraus": "from what / made of what", "holz": "wood", "stein": "stone",
+    "wer": "who", "lehrerin": "teacher (female)", "was": "what", "mit": "with", "der": "the (masc.)",
+    "gibt": "gives", "ihr": "her / to her", "läuft": "runs", "weg": "away", "sie": "they / she / it"
+  }
+};
+/* ===== END STORY DATA ===== */
+
+const pop = document.getElementById('pop');
+const synth = window.speechSynthesis;
+
+function speak(text) {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  if (v) u.voice = v;
+  u.rate = 0.85;
+  synth.speak(u);
+}
+if (synth) synth.getVoices();
+
+// speak the whole story: one utterance per sentence, queued (avoids browser cut-offs on long text)
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  STORY.sentences.forEach(s => {
+    const u = new SpeechSynthesisUtterance(s.de);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    synth.speak(u);
+  });
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
+
+function showPop(anchor, html) {
+  pop.innerHTML = html;
+  pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px';
+  pop.style.top = (r.bottom + scrollY + 6) + 'px';
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function btn(label, title, fn) {
+  const b = document.createElement('button');
+  b.className = 'ic'; b.textContent = label; b.title = title;
+  b.addEventListener('click', e => { e.stopPropagation(); fn(b); });
+  return b;
+}
+
+const main = document.getElementById('story');
+STORY.sentences.forEach(s => {
+  const p = document.createElement('span');
+  p.className = 's';
+  p.appendChild(btn('🔊', 'Satz anhören / Hear sentence', () => speak(s.de)));
+  p.appendChild(btn('💬', 'English', b => showPop(b, esc(s.en))));
+  // split into words (letters incl. umlauts/ß, apostrophes/hyphens inside) and everything else
+  s.de.split(/([A-Za-zÄÖÜäöüß]+(?:[-'][A-Za-zÄÖÜäöüß]+)*)/).forEach(part => {
+    if (!part) return;
+    if (/^[A-Za-zÄÖÜäöüß]/.test(part)) {
+      const key = part.toLowerCase();
+      const en = STORY.glossary[key];
+      if (en === undefined) console.warn('Missing glossary entry:', key);
+      const w = document.createElement('span');
+      w.className = 'w'; w.textContent = part;
+      w.addEventListener('click', e => {
+        e.stopPropagation();
+        showPop(w, '<span class="de">' + esc(part) + '</span> = ' + esc(en ?? '(no translation)') + ' ');
+        const sp = btn('🔊', 'Wort anhören / Hear word', () => speak(part));
+        pop.appendChild(sp);
+      });
+      p.appendChild(w);
+    } else {
+      p.appendChild(document.createTextNode(part));
+    }
+  });
+  main.appendChild(p);
+});
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
+
+document.addEventListener('click', () => { pop.style.display = 'none'; });
+pop.addEventListener('click', e => e.stopPropagation());
+</script>
+</body>
+</html>
