@@ -19,6 +19,16 @@
     .ic:hover { transform:scale(1.2); }
     .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
     .all:hover { background:#f1dfb8; }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
     .w { cursor:pointer; border-radius:4px; padding:0 1px; }
     .w:hover { background:#f1dfb8; }
     #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
@@ -36,6 +46,7 @@
   <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
   <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
   <main id="story"></main>
+  <section id="quiz"></section>
   <div id="pop"></div>
 
 <script>
@@ -59,6 +70,13 @@ const STORY = {
     {"de": "Tom ist stolz auf seinen Hund.", "en": "Tom is proud of his dog."},
     {"de": "Am Abend ist Max müde.", "en": "In the evening, Max is tired."},
     {"de": "Er schläft zu Hause auf dem Sofa.", "en": "He sleeps at home on the sofa."}
+  ],
+  /* 4 comprehension questions in German, each with 3 options; answer = index (0-2) of the correct option */
+  questions: [
+    {"q": "Wie heißt der Hund?", "options": ["Tom", "Max", "Bello"], "answer": 1},
+    {"q": "Wohin gehen Tom und Max?", "options": ["Nach Hause", "In die Schule", "In den Park"], "answer": 2},
+    {"q": "Was fängt Max?", "options": ["Einen Vogel", "Eine Katze", "Den Ball"], "answer": 2},
+    {"q": "Wo schläft Max am Abend?", "options": ["Im Park", "Auf dem Sofa", "Im Auto"], "answer": 1}
   ],
   /* every distinct word (lowercase, no punctuation) used in the sentences */
   glossary: {
@@ -190,6 +208,29 @@ STORY.sentences.forEach(s => {
   });
   main.appendChild(p);
 });
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
 
 document.addEventListener('click', () => { pop.style.display = 'none'; });
 pop.addEventListener('click', e => e.stopPropagation());
