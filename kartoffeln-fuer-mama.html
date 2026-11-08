@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kartoffeln für Mama</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0 16px 4rem; background:#faf6ee; color:#2b2b2b; font-family:"Lora",Georgia,serif; }
+    header { text-align:center; padding:2rem 0 1rem; }
+    h1 { font-family:"Playfair Display",Georgia,serif; font-size:2.5rem; margin:0 0 .4rem; }
+    .sub { font-style:italic; font-size:1.25rem; color:#6b5b4b; margin:0; }
+    .back { display:block; text-align:center; margin:.5rem 0 1.5rem; color:#6b5b4b; }
+    main { max-width:42rem; margin:0 auto; font-size:1.3rem; line-height:2.2; }
+    .s { display:block; margin-bottom:.6rem; }
+    .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
+    .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
+    .w { cursor:pointer; border-radius:4px; padding:0 1px; }
+    .w:hover { background:#f1dfb8; }
+    #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
+           border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.2); padding:.6rem .8rem;
+           font-size:1.05rem; line-height:1.5; max-width:min(22rem,86vw); }
+    #pop .de { font-weight:bold; margin-right:.3rem; }
+    @media (max-width:480px){ h1{font-size:1.8rem;} main{font-size:1.15rem;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kartoffeln für Mama</h1>
+    <p class="sub">Potatoes for Mum</p>
+  </header>
+  <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
+  <main id="story"></main>
+  <section id="quiz"></section>
+  <div id="pop"></div>
+
+<script>
+/* ===== STORY DATA (edit this block when updating a story) ===== */
+const STORY = {
+  level: "A1-A2",
+  titleDe: "Kartoffeln für Mama",
+  titleEn: "Potatoes for Mum",
+  sentences: [
+    { de: "Tom ist sieben Jahre alt.", en: "Tom is seven years old." },
+    { de: "Heute hilft er seiner Mama.", en: "Today he helps his mum." },
+    { de: "Mama gibt ihm fünf Euro.", en: "Mum gives him five euros." },
+    { de: "Bitte kauf Kartoffeln im Supermarkt, sagt sie.", en: "Please buy potatoes at the supermarket, she says." },
+    { de: "Ich mache heute Abend Kartoffelsalat.", en: "I am making potato salad this evening." },
+    { de: "Tom nimmt das Geld und geht zur Bushaltestelle.", en: "Tom takes the money and walks to the bus stop." },
+    { de: "Der Bus kommt bald.", en: "The bus comes soon." },
+    { de: "Tom steigt ein und fährt zum Supermarkt.", en: "Tom gets on and rides to the supermarket." },
+    { de: "Im Supermarkt findet er die Kartoffeln.", en: "In the supermarket he finds the potatoes." },
+    { de: "Er bezahlt an der Kasse und nimmt die Tüte.", en: "He pays at the checkout and takes the bag." },
+    { de: "Dann fährt er mit dem Bus nach Hause.", en: "Then he rides home on the bus." },
+    { de: "Mama wartet schon an der Tür.", en: "Mum is already waiting at the door." },
+    { de: "Danke, Tom, du bist ein guter Helfer!", en: "Thank you, Tom, you are a good helper!" },
+    { de: "Am Abend essen sie zusammen den Kartoffelsalat.", en: "In the evening they eat the potato salad together." }
+  ],
+  questions: [
+    { q: "Wie alt ist Tom?", options: ["Sieben", "Fünf", "Zehn"], answer: 0 },
+    { q: "Was soll Tom kaufen?", options: ["Brot", "Kartoffeln", "Äpfel"], answer: 1 },
+    { q: "Wie fährt Tom zum Supermarkt?", options: ["Mit dem Auto", "Mit dem Fahrrad", "Mit dem Bus"], answer: 2 },
+    { q: "Was macht Mama am Abend?", options: ["Kartoffelsalat", "Suppe", "Pizza"], answer: 0 }
+  ],
+  glossary: {
+    "tom": "Tom (name)", "ist": "is", "sieben": "seven", "jahre": "years", "alt": "old",
+    "heute": "today", "hilft": "helps", "er": "he", "seiner": "his (to his)", "mama": "mum",
+    "gibt": "gives", "ihm": "(to) him", "fünf": "five", "euro": "euro(s)",
+    "bitte": "please", "kauf": "buy (command)", "kartoffeln": "potatoes", "im": "in the",
+    "supermarkt": "supermarket", "sagt": "says", "sie": "she / they", "ich": "I",
+    "mache": "make / am making", "abend": "evening", "kartoffelsalat": "potato salad",
+    "nimmt": "takes", "das": "the (neut.)", "geld": "money", "und": "and", "geht": "goes / walks",
+    "zur": "to the (fem.)", "bushaltestelle": "bus stop", "der": "the (masc.)", "bus": "bus",
+    "kommt": "comes", "bald": "soon", "steigt": "climbs / steps (einsteigen = to get on)",
+    "ein": "a / on (einsteigen = to get on)", "fährt": "rides / travels", "zum": "to the (masc./neut.)",
+    "findet": "finds", "die": "the (fem./plural)", "bezahlt": "pays", "an": "at", "kasse": "checkout",
+    "tüte": "bag", "dann": "then", "mit": "with / by", "dem": "the (dative)", "nach": "to / after",
+    "hause": "home (nach Hause = (to) home)", "wartet": "waits", "schon": "already", "tür": "door",
+    "danke": "thank you", "du": "you", "bist": "are", "guter": "good", "helfer": "helper",
+    "am": "in the / on the", "essen": "eat", "zusammen": "together", "den": "the (masc., accusative)",
+    "wie": "how / what", "alt": "old", "was": "what", "soll": "should / is supposed to",
+    "kaufen": "to buy", "brot": "bread", "äpfel": "apples", "auto": "car", "fahrrad": "bicycle",
+    "macht": "does / makes", "suppe": "soup", "pizza": "pizza", "zehn": "ten", "zum": "to the (masc./neut.)",
+    "fahren": "to ride"
+  }
+};
+/* ===== END STORY DATA ===== */
+
+const pop = document.getElementById('pop');
+const synth = window.speechSynthesis;
+
+function speak(text) {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  if (v) u.voice = v;
+  u.rate = 0.85;
+  synth.speak(u);
+}
+if (synth) synth.getVoices();
+
+// speak the whole story: one utterance per sentence, queued (avoids browser cut-offs on long text)
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  STORY.sentences.forEach(s => {
+    const u = new SpeechSynthesisUtterance(s.de);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    synth.speak(u);
+  });
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
+
+function showPop(anchor, html) {
+  pop.innerHTML = html;
+  pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px';
+  pop.style.top = (r.bottom + scrollY + 6) + 'px';
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function btn(label, title, fn) {
+  const b = document.createElement('button');
+  b.className = 'ic'; b.textContent = label; b.title = title;
+  b.addEventListener('click', e => { e.stopPropagation(); fn(b); });
+  return b;
+}
+
+const main = document.getElementById('story');
+STORY.sentences.forEach(s => {
+  const p = document.createElement('span');
+  p.className = 's';
+  p.appendChild(btn('🔊', 'Satz anhören / Hear sentence', () => speak(s.de)));
+  p.appendChild(btn('💬', 'English', b => showPop(b, esc(s.en))));
+  // split into words (letters incl. umlauts/ß, apostrophes/hyphens inside) and everything else
+  s.de.split(/([A-Za-zÄÖÜäöüß]+(?:[-'][A-Za-zÄÖÜäöüß]+)*)/).forEach(part => {
+    if (!part) return;
+    if (/^[A-Za-zÄÖÜäöüß]/.test(part)) {
+      const key = part.toLowerCase();
+      const en = STORY.glossary[key];
+      if (en === undefined) console.warn('Missing glossary entry:', key);
+      const w = document.createElement('span');
+      w.className = 'w'; w.textContent = part;
+      w.addEventListener('click', e => {
+        e.stopPropagation();
+        showPop(w, '<span class="de">' + esc(part) + '</span> = ' + esc(en ?? '(no translation)') + ' ');
+        const sp = btn('🔊', 'Wort anhören / Hear word', () => speak(part));
+        pop.appendChild(sp);
+      });
+      p.appendChild(w);
+    } else {
+      p.appendChild(document.createTextNode(part));
+    }
+  });
+  main.appendChild(p);
+});
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
+
+document.addEventListener('click', () => { pop.style.display = 'none'; });
+pop.addEventListener('click', e => e.stopPropagation());
+</script>
+</body>
+</html>
