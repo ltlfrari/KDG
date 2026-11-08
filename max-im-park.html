@@ -17,6 +17,8 @@
     .s { display:block; margin-bottom:.6rem; }
     .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
     .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
     .w { cursor:pointer; border-radius:4px; padding:0 1px; }
     .w:hover { background:#f1dfb8; }
     #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
@@ -32,6 +34,7 @@
     <p class="sub">Max in the Park</p>
   </header>
   <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
   <main id="story"></main>
   <div id="pop"></div>
 
@@ -128,6 +131,19 @@ function speak(text) {
   synth.speak(u);
 }
 if (synth) synth.getVoices();
+
+// speak the whole story: one utterance per sentence, queued (avoids browser cut-offs on long text)
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  STORY.sentences.forEach(s => {
+    const u = new SpeechSynthesisUtterance(s.de);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    synth.speak(u);
+  });
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
 
 function showPop(anchor, html) {
   pop.innerHTML = html;
