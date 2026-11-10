@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Der Fisch, der fliegen wollte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0 16px 4rem; background:#faf6ee; color:#2b2b2b; font-family:"Lora",Georgia,serif; }
+    header { text-align:center; padding:2rem 0 1rem; }
+    h1 { font-family:"Playfair Display",Georgia,serif; font-size:2.5rem; margin:0 0 .4rem; }
+    .sub { font-style:italic; font-size:1.25rem; color:#6b5b4b; margin:0; }
+    .lvl { display:inline-block; margin:.6rem 0 0; font-size:.95rem; font-weight:bold; color:#6b3f1d; background:#f1dfb8; border-radius:999px; padding:.1rem .8rem; }
+    .back { display:block; text-align:center; margin:.5rem 0 1.5rem; color:#6b5b4b; }
+    main { max-width:42rem; margin:0 auto; font-size:1.3rem; line-height:2.2; }
+    .s { display:block; margin-bottom:.6rem; }
+    .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
+    .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
+    .w { cursor:pointer; border-radius:4px; padding:0 1px; }
+    .w:hover { background:#f1dfb8; }
+    #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
+           border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.2); padding:.6rem .8rem;
+           font-size:1.05rem; line-height:1.5; max-width:min(22rem,86vw); }
+    #pop .de { font-weight:bold; margin-right:.3rem; }
+    @media (max-width:480px){ h1{font-size:1.8rem;} main{font-size:1.15rem;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Der Fisch, der fliegen wollte</h1>
+    <p class="sub">The Fish Who Wanted to Fly</p>
+    <p class="lvl" id="lvl"></p>
+  </header>
+  <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
+  <main id="story"></main>
+  <section id="quiz"></section>
+  <div id="pop"></div>
+
+<script>
+/* ===== STORY DATA (edit this block when updating a story) ===== */
+const STORY = {
+  level: "B2",
+  titleDe: "Der Fisch, der fliegen wollte",
+  titleEn: "The Fish Who Wanted to Fly",
+  /* one entry per sentence: de = German, en = English translation */
+  sentences: [
+    {"de":"Tief im Wald lag ein kleiner See, dessen Wasser so klar war, dass man jeden Stein auf dem Grund erkennen konnte.","en":"Deep in the forest lay a small lake whose water was so clear that you could make out every stone on the bottom."},
+    {"de":"In diesem See lebte ein junger Fisch namens Finn.","en":"In this lake lived a young fish named Finn."},
+    {"de":"Er kannte jede Pflanze und jeden Winkel, doch er war nie richtig zufrieden gewesen.","en":"He knew every plant and every corner, but he had never been truly content."},
+    {"de":"Eines Morgens schwamm Finn nahe an der Oberfläche, als plötzlich ein Schatten über das Wasser glitt.","en":"One morning Finn was swimming close to the surface when suddenly a shadow glided across the water."},
+    {"de":"Er blickte nach oben und sah einen Vogel, der majestätisch durch die Luft segelte.","en":"He looked up and saw a bird soaring majestically through the air."},
+    {"de":"„Wie wunderbar das aussieht!“, flüsterte Finn. „Der Vogel kann überallhin fliegen, während ich in diesem winzigen See gefangen bin.“","en":"\"How wonderful that looks!\" whispered Finn. \"The bird can fly everywhere, while I am trapped in this tiny lake.\""},
+    {"de":"Von diesem Tag an dachte er an nichts anderes mehr, als selbst zu fliegen.","en":"From that day on he thought of nothing else but flying himself."},
+    {"de":"Er beschloss, es zu lernen, und sprang mit aller Kraft aus dem Wasser.","en":"He decided to learn it and jumped out of the water with all his strength."},
+    {"de":"Für einen kurzen Moment spürte er den Wind auf seinen Schuppen, doch dann fiel er mit einem lauten Platsch zurück.","en":"For a brief moment he felt the wind on his scales, but then he fell back with a loud splash."},
+    {"de":"Finn gab nicht auf, obwohl die anderen Fische ihn auslachten.","en":"Finn did not give up, even though the other fish laughed at him."},
+    {"de":"Tagelang übte er, sprang immer höher und schlug dabei wild mit den Flossen.","en":"For days he practised, jumped ever higher and flapped his fins wildly."},
+    {"de":"Nachdem er es hundertmal versucht hatte, war er völlig erschöpft und sank auf den Grund.","en":"After he had tried a hundred times, he was completely exhausted and sank to the bottom."},
+    {"de":"Dort traf er eine alte Schildkröte, die ihn schon lange beobachtet hatte.","en":"There he met an old turtle that had been watching him for a long time."},
+    {"de":"„Du bist ein Fisch“, sagte sie ruhig, „und kein Vogel. Dein Körper wurde zum Schwimmen gemacht, nicht zum Fliegen.“","en":"\"You are a fish,\" she said calmly, \"and not a bird. Your body was made for swimming, not for flying.\""},
+    {"de":"„Aber der Vogel hat die ganze Welt gesehen, und ich kenne nur diesen See“, antwortete Finn traurig.","en":"\"But the bird has seen the whole world, and I only know this lake,\" Finn answered sadly."},
+    {"de":"Die Schildkröte lächelte: „Vielleicht kannst du die Welt trotzdem entdecken, nur auf deine eigene Art.“","en":"The turtle smiled: \"Perhaps you can discover the world anyway, just in your own way.\""},
+    {"de":"Am nächsten Tag tauchte Finn zum ersten Mal in die tiefsten Stellen des Sees, die er bisher nie beachtet hatte.","en":"The next day Finn dived for the first time into the deepest parts of the lake, which he had never paid attention to before."},
+    {"de":"Dort entdeckte er Höhlen, glitzernde Steine und Fische, deren Farben er noch nie gesehen hatte.","en":"There he discovered caves, glittering stones and fish whose colours he had never seen before."},
+    {"de":"Plötzlich verstand er, dass sein kleiner See viel größer war, als er immer geglaubt hatte.","en":"Suddenly he understood that his little lake was much bigger than he had always believed."},
+    {"de":"Wenn der Vogel jetzt über das Wasser flog, schaute Finn nicht mehr neidisch hinauf.","en":"Whenever the bird now flew over the water, Finn no longer looked up enviously."},
+    {"de":"Stattdessen schwamm er fröhlich unter dem Schatten des Vogels her, denn jeder von ihnen hatte seine eigene Welt.","en":"Instead he swam happily along beneath the bird's shadow, for each of them had a world of their own."}
+  ],
+  /* 4 comprehension questions in German, each with 3 options; answer = index (0-2) of the correct option */
+  questions: [
+    {"q":"Warum war Finn nie richtig zufrieden?","options":["Er wollte mehr sehen als nur seinen kleinen See.","Er hatte keine Freunde im See.","Das Wasser im See war zu schmutzig."],"answer":0},
+    {"q":"Was passierte, als Finn aus dem Wasser sprang?","options":["Er flog einen ganzen Tag lang.","Er spürte kurz den Wind und fiel dann zurück.","Der Vogel fing ihn mit den Krallen."],"answer":1},
+    {"q":"Was sagte die Schildkröte zu Finn?","options":["Er solle härter üben, dann könne er fliegen.","Er müsse den See sofort verlassen.","Sein Körper sei zum Schwimmen gemacht, aber er könne die Welt auf seine Art entdecken."],"answer":2},
+    {"q":"Was verstand Finn am Ende?","options":["Sein See war viel größer, als er gedacht hatte.","Vögel sind klüger als Fische.","Er musste einen anderen See suchen."],"answer":0}
+  ],
+  /* every distinct word (lowercase, no punctuation) used in the sentences */
+  glossary: {
+    "tief": "deep",
+    "im": "in the",
+    "wald": "forest",
+    "lag": "lay / was located",
+    "ein": "a / one",
+    "kleiner": "small",
+    "see": "lake",
+    "dessen": "whose",
+    "wasser": "water",
+    "so": "so",
+    "klar": "clear",
+    "war": "was",
+    "dass": "that",
+    "man": "one / you",
+    "jeden": "every (masc. acc.)",
+    "stein": "stone",
+    "auf": "on",
+    "dem": "the (dat.)",
+    "grund": "bottom / ground",
+    "erkennen": "to recognise / make out",
+    "konnte": "could",
+    "in": "in",
+    "diesem": "this (dat.)",
+    "lebte": "lived",
+    "junger": "young",
+    "fisch": "fish",
+    "namens": "named",
+    "finn": "Finn (name)",
+    "er": "he",
+    "kannte": "knew",
+    "jede": "every (fem.)",
+    "pflanze": "plant",
+    "und": "and",
+    "winkel": "corner",
+    "doch": "but / yet",
+    "nie": "never",
+    "richtig": "truly / really",
+    "zufrieden": "content / satisfied",
+    "gewesen": "been",
+    "eines": "one (of a day)",
+    "morgens": "in the morning",
+    "schwamm": "swam",
+    "nahe": "close / near",
+    "an": "at / to",
+    "der": "the (masc.)",
+    "oberfläche": "surface",
+    "als": "when / than",
+    "plötzlich": "suddenly",
+    "schatten": "shadow",
+    "über": "over / across",
+    "das": "the (neut.) / that",
+    "glitt": "glided",
+    "blickte": "looked",
+    "nach": "to / towards",
+    "oben": "up / above",
+    "sah": "saw",
+    "einen": "a (masc. acc.)",
+    "vogel": "bird",
+    "majestätisch": "majestically",
+    "durch": "through",
+    "luft": "air",
+    "segelte": "soared / sailed",
+    "wie": "how",
+    "wunderbar": "wonderful",
+    "aussieht": "looks (aussehen = to look)",
+    "flüsterte": "whispered",
+    "kann": "can",
+    "überallhin": "everywhere (to)",
+    "fliegen": "to fly",
+    "während": "while",
+    "ich": "I",
+    "winzigen": "tiny",
+    "gefangen": "trapped / caught",
+    "bin": "am",
+    "von": "from",
+    "tag": "day",
+    "dachte": "thought",
+    "nichts": "nothing",
+    "anderes": "else / other",
+    "mehr": "more / any more",
+    "selbst": "oneself / myself",
+    "zu": "to",
+    "beschloss": "decided",
+    "es": "it",
+    "lernen": "to learn",
+    "sprang": "jumped",
+    "mit": "with",
+    "aller": "all (dat.)",
+    "kraft": "strength",
+    "aus": "out of",
+    "für": "for",
+    "kurzen": "short",
+    "moment": "moment",
+    "spürte": "felt",
+    "den": "the (masc. acc.)",
+    "wind": "wind",
+    "seinen": "his (dat. pl.)",
+    "schuppen": "scales",
+    "dann": "then",
+    "fiel": "fell",
+    "einem": "a (dat.)",
+    "lauten": "loud",
+    "platsch": "splash",
+    "zurück": "back",
+    "gab": "gave (aufgeben = to give up)",
+    "nicht": "not",
+    "obwohl": "although",
+    "die": "the / who / which",
+    "anderen": "other",
+    "fische": "fish (plural)",
+    "ihn": "him",
+    "auslachten": "laughed at",
+    "tagelang": "for days",
+    "übte": "practised",
+    "immer": "always / ever",
+    "höher": "higher",
+    "schlug": "hit / flapped",
+    "dabei": "while doing so",
+    "wild": "wildly",
+    "flossen": "fins",
+    "nachdem": "after",
+    "hundertmal": "a hundred times",
+    "versucht": "tried",
+    "hatte": "had",
+    "völlig": "completely",
+    "erschöpft": "exhausted",
+    "sank": "sank",
+    "dort": "there",
+    "traf": "met",
+    "eine": "a (fem.)",
+    "alte": "old",
+    "schildkröte": "turtle",
+    "schon": "already",
+    "lange": "for a long time",
+    "beobachtet": "watched / observed",
+    "du": "you",
+    "bist": "are",
+    "sagte": "said",
+    "sie": "she / they",
+    "ruhig": "calmly",
+    "kein": "no / not a",
+    "dein": "your",
+    "körper": "body",
+    "wurde": "was / became (passive)",
+    "zum": "for the / to the",
+    "schwimmen": "swimming / to swim",
+    "gemacht": "made",
+    "aber": "but",
+    "hat": "has",
+    "ganze": "whole",
+    "welt": "world",
+    "gesehen": "seen",
+    "kenne": "know",
+    "nur": "only / just",
+    "diesen": "this (acc.)",
+    "antwortete": "answered",
+    "traurig": "sadly",
+    "lächelte": "smiled",
+    "vielleicht": "perhaps",
+    "kannst": "can (you)",
+    "trotzdem": "anyway / nevertheless",
+    "entdecken": "to discover",
+    "deine": "your",
+    "eigene": "own",
+    "art": "way / manner",
+    "am": "on the",
+    "nächsten": "next",
+    "tauchte": "dived",
+    "ersten": "first",
+    "mal": "time",
+    "tiefsten": "deepest",
+    "stellen": "places / spots",
+    "sees": "of the lake",
+    "bisher": "until then",
+    "beachtet": "noticed / paid attention to",
+    "entdeckte": "discovered",
+    "höhlen": "caves",
+    "glitzernde": "glittering",
+    "steine": "stones",
+    "deren": "whose",
+    "farben": "colours",
+    "noch": "yet / still",
+    "verstand": "understood",
+    "sein": "his",
+    "viel": "much",
+    "größer": "bigger",
+    "geglaubt": "believed",
+    "wenn": "whenever / if",
+    "jetzt": "now",
+    "flog": "flew",
+    "schaute": "looked",
+    "neidisch": "enviously",
+    "hinauf": "up (towards)",
+    "stattdessen": "instead",
+    "fröhlich": "happily",
+    "unter": "under / beneath",
+    "des": "of the",
+    "vogels": "of the bird",
+    "her": "along (hin und her)",
+    "denn": "because / for",
+    "jeder": "each / everyone",
+    "ihnen": "them (dat.)",
+    "seine": "his / her / its"
+  }
+};
+/* ===== END STORY DATA ===== */
+document.getElementById('lvl').textContent = 'Niveau / Level: ' + STORY.level;
+
+const pop = document.getElementById('pop');
+const synth = window.speechSynthesis;
+
+function speak(text) {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'de-DE';
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  if (v) u.voice = v;
+  u.rate = 0.85;
+  synth.speak(u);
+}
+if (synth) synth.getVoices();
+
+// speak the whole story: one utterance per sentence, queued (avoids browser cut-offs on long text)
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  STORY.sentences.forEach(s => {
+    const u = new SpeechSynthesisUtterance(s.de);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    synth.speak(u);
+  });
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
+
+function showPop(anchor, html) {
+  pop.innerHTML = html;
+  pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px';
+  pop.style.top = (r.bottom + scrollY + 6) + 'px';
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function btn(label, title, fn) {
+  const b = document.createElement('button');
+  b.className = 'ic'; b.textContent = label; b.title = title;
+  b.addEventListener('click', e => { e.stopPropagation(); fn(b); });
+  return b;
+}
+
+const main = document.getElementById('story');
+STORY.sentences.forEach(s => {
+  const p = document.createElement('span');
+  p.className = 's';
+  p.appendChild(btn('🔊', 'Satz anhören / Hear sentence', () => speak(s.de)));
+  p.appendChild(btn('💬', 'English', b => showPop(b, esc(s.en))));
+  // split into words (letters incl. umlauts/ß, apostrophes/hyphens inside) and everything else
+  s.de.split(/([A-Za-zÄÖÜäöüß]+(?:[-'][A-Za-zÄÖÜäöüß]+)*)/).forEach(part => {
+    if (!part) return;
+    if (/^[A-Za-zÄÖÜäöüß]/.test(part)) {
+      const key = part.toLowerCase();
+      const en = STORY.glossary[key];
+      if (en === undefined) console.warn('Missing glossary entry:', key);
+      const w = document.createElement('span');
+      w.className = 'w'; w.textContent = part;
+      w.addEventListener('click', e => {
+        e.stopPropagation();
+        showPop(w, '<span class="de">' + esc(part) + '</span> = ' + esc(en ?? '(no translation)') + ' ');
+        const sp = btn('🔊', 'Wort anhören / Hear word', () => speak(part));
+        pop.appendChild(sp);
+      });
+      p.appendChild(w);
+    } else {
+      p.appendChild(document.createTextNode(part));
+    }
+  });
+  main.appendChild(p);
+});
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
+
+document.addEventListener('click', () => { pop.style.display = 'none'; });
+pop.addEventListener('click', e => e.stopPropagation());
+</script>
+</body>
+</html>
