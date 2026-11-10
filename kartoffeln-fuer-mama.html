@@ -222,28 +222,59 @@ document.getElementById('lvl').textContent = 'Niveau / Level: ' + STORY.level;
 const pop = document.getElementById('pop');
 const synth = window.speechSynthesis;
 
+// Speech with pauses at punctuation: text is split into chunks at , ; : – — . ! ? and each chunk is
+// spoken as its own utterance; a silent gap (setTimeout) follows each chunk (short for commas, longer for sentence ends).
+const PAUSE = { ',': 100, ';': 250, ':': 250, '–': 250, '—': 250, '.': 300, '!': 300, '?': 300 };
+const SENTENCE_GAP = 650;
+let speechToken = 0;
+
+function germanVoice() {
+  return synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+}
+function chunks(text) {
+  const out = [];
+  const re = /([^,;:–—.!?]+)([,;:–—.!?„“"»«]*)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const words = m[1].replace(/[„“"»«]/g, '').trim();
+    const punct = (m[2].match(/[,;:–—.!?]/g) || []).pop();
+    if (words) out.push({ text: words, pause: punct ? PAUSE[punct] : 0 });
+    else if (punct && out.length) out[out.length - 1].pause = Math.max(out[out.length - 1].pause, PAUSE[punct]);
+  }
+  return out;
+}
+function speakQueue(items) {   // items: [{text, pause}]
+  const token = ++speechToken;
+  const v = germanVoice();
+  let i = 0;
+  (function next() {
+    if (token !== speechToken || i >= items.length) return;
+    const it = items[i++];
+    const u = new SpeechSynthesisUtterance(it.text);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    const go = () => setTimeout(next, it.pause);
+    u.onend = go; u.onerror = go;
+    synth.speak(u);
+  })();
+}
 function speak(text) {
   if (!synth) { alert('Speech is not supported in this browser.'); return; }
   synth.cancel();
-  const u = new SpeechSynthesisUtterance(text);
-  u.lang = 'de-DE';
-  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
-  if (v) u.voice = v;
-  u.rate = 0.85;
-  synth.speak(u);
+  speakQueue(chunks(text));
 }
 if (synth) synth.getVoices();
 
-// speak the whole story: one utterance per sentence, queued (avoids browser cut-offs on long text)
+// speak the whole story: sentence by sentence, with pauses at punctuation and a longer gap between sentences
 function speakAll() {
   if (!synth) { alert('Speech is not supported in this browser.'); return; }
   synth.cancel();
-  const v = synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+  const items = [];
   STORY.sentences.forEach(s => {
-    const u = new SpeechSynthesisUtterance(s.de);
-    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
-    synth.speak(u);
+    const c = chunks(s.de);
+    if (c.length) c[c.length - 1].pause = Math.max(c[c.length - 1].pause, SENTENCE_GAP);
+    items.push(...c);
   });
+  speakQueue(items);
 }
 document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
 
