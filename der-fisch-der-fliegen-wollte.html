@@ -303,7 +303,7 @@ const synth = window.speechSynthesis;
 
 // Speech with pauses at punctuation: text is split into chunks at , ; : – — . ! ? and each chunk is
 // spoken as its own utterance; a silent gap (setTimeout) follows each chunk (short for commas, longer for sentence ends).
-const PAUSE = { ',': 200, ';': 350, ':': 350, '–': 250, '—': 250, '.': 450, '!': 450, '?': 450 };
+const PAUSE = { ',': 100, ';': 250, ':': 250, '–': 250, '—': 250, '.': 300, '!': 300, '?': 300 };
 const SENTENCE_GAP = 650;
 let speechToken = 0;
 
