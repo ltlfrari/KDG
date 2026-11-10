@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tims neues Fahrrad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0 16px 4rem; background:#faf6ee; color:#2b2b2b; font-family:"Lora",Georgia,serif; }
+    header { text-align:center; padding:2rem 0 1rem; }
+    h1 { font-family:"Playfair Display",Georgia,serif; font-size:2.5rem; margin:0 0 .4rem; }
+    .sub { font-style:italic; font-size:1.25rem; color:#6b5b4b; margin:0; }
+    .lvl { display:inline-block; margin:.6rem 0 0; font-size:.95rem; font-weight:bold; color:#6b3f1d; background:#f1dfb8; border-radius:999px; padding:.1rem .8rem; }
+    .back { display:block; text-align:center; margin:.5rem 0 1.5rem; color:#6b5b4b; }
+    main { max-width:42rem; margin:0 auto; font-size:1.3rem; line-height:2.2; }
+    .s { display:block; margin-bottom:.6rem; }
+    .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
+    .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
+    .w { cursor:pointer; border-radius:4px; padding:0 1px; }
+    .w:hover { background:#f1dfb8; }
+    #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
+           border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.2); padding:.6rem .8rem;
+           font-size:1.05rem; line-height:1.5; max-width:min(22rem,86vw); }
+    #pop .de { font-weight:bold; margin-right:.3rem; }
+    @media (max-width:480px){ h1{font-size:1.8rem;} main{font-size:1.15rem;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tims neues Fahrrad</h1>
+    <p class="sub">Tim's New Bike</p>
+    <p class="lvl" id="lvl"></p>
+  </header>
+  <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
+  <main id="story"></main>
+  <section id="quiz"></section>
+  <div id="pop"></div>
+
+<script>
+/* ===== STORY DATA (edit this block when updating a story) ===== */
+const STORY = {
+  level: "B2",
+  titleDe: "Tims neues Fahrrad",
+  titleEn: "Tim's New Bike",
+  sentences: [
+  {
+    "de": "Tims altes Fahrrad war nach zehn Jahren endgültig kaputt.",
+    "en": "Tim's old bicycle was finally broken after ten years."
+  },
+  {
+    "de": "Als er am Montagmorgen losfahren wollte, riss plötzlich die Kette, und er musste zu Fuß zur Arbeit gehen.",
+    "en": "When he wanted to set off on Monday morning, the chain suddenly snapped, and he had to walk to work."
+  },
+  {
+    "de": "Am Abend beschloss er, dass er sich endlich ein neues Rad kaufen würde.",
+    "en": "In the evening he decided that he would finally buy himself a new bike."
+  },
+  {
+    "de": "Am Samstag ging er in ein großes Fahrradgeschäft in der Innenstadt.",
+    "en": "On Saturday he went to a big bicycle shop in the town centre."
+  },
+  {
+    "de": "Dort hatte er die Qual der Wahl: Es gab Rennräder, Mountainbikes, Lastenräder und sogar Falträder.",
+    "en": "There he was spoilt for choice: there were racing bikes, mountain bikes, cargo bikes and even folding bikes."
+  },
+  {
+    "de": "Ein freundlicher Verkäufer namens Herr Becker kam auf ihn zu und fragte, wofür er das Rad brauche.",
+    "en": "A friendly salesman called Mr Becker came up to him and asked what he needed the bike for."
+  },
+  {
+    "de": "„Ich möchte damit jeden Tag zur Arbeit fahren“, erklärte Tim, „und zwar mitten durch die Stadt.“",
+    "en": "\"I want to ride to work on it every day,\" Tim explained, \"right through the middle of town.\""
+  },
+  {
+    "de": "„Außerdem ist die Strecke ziemlich hügelig, deshalb brauche ich genügend Gänge.“",
+    "en": "\"Besides, the route is quite hilly, so I need enough gears.\""
+  },
+  {
+    "de": "Herr Becker nickte und meinte, dass ein Mountainbike für die Stadt zu schwer und ein Rennrad zu unbequem wäre.",
+    "en": "Mr Becker nodded and said that a mountain bike would be too heavy for the town and a racing bike too uncomfortable."
+  },
+  {
+    "de": "Stattdessen zeigte er ihm ein elegantes Trekkingrad mit einundzwanzig Gängen, Schutzblechen und einem stabilen Gepäckträger.",
+    "en": "Instead he showed him an elegant trekking bike with twenty-one gears, mudguards and a sturdy luggage rack."
+  },
+  {
+    "de": "Nachdem Tim eine Probefahrt auf dem Parkplatz gemacht hatte, war er begeistert.",
+    "en": "After Tim had gone for a test ride in the car park, he was thrilled."
+  },
+  {
+    "de": "Das Rad lief leise und leicht, und die Gangschaltung funktionierte einwandfrei.",
+    "en": "The bike ran quietly and smoothly, and the gear system worked perfectly."
+  },
+  {
+    "de": "Obwohl der Preis etwas höher war, als er geplant hatte, entschied er sich ohne langes Zögern für dieses Modell.",
+    "en": "Although the price was somewhat higher than he had planned, he chose this model without hesitating long."
+  },
+  {
+    "de": "Zum Schluss kaufte er noch einen Helm und ein starkes Schloss, damit das Rad nicht gestohlen werden konnte.",
+    "en": "Finally he also bought a helmet and a strong lock so that the bike could not be stolen."
+  },
+  {
+    "de": "Als Tim das Geschäft verließ, schien die Sonne, und ein frischer Wind wehte durch die Straßen.",
+    "en": "When Tim left the shop, the sun was shining and a fresh wind blew through the streets."
+  },
+  {
+    "de": "Eigentlich wollte er direkt nach Hause fahren, aber das Wetter war so schön, dass er einen Umweg machte.",
+    "en": "He actually wanted to ride straight home, but the weather was so lovely that he took a detour."
+  },
+  {
+    "de": "Er radelte am Fluss entlang, wo die Blätter im Wind raschelten und das Wasser in der Sonne glitzerte.",
+    "en": "He cycled along the river, where the leaves rustled in the wind and the water glittered in the sun."
+  },
+  {
+    "de": "Wenn der Weg bergauf ging, schaltete er einfach einen Gang herunter und trat entspannt weiter.",
+    "en": "Whenever the path went uphill, he simply changed down a gear and kept pedalling calmly."
+  },
+  {
+    "de": "Oben auf dem Hügel hielt er an und blickte über die ganze Stadt.",
+    "en": "At the top of the hill he stopped and looked out over the whole town."
+  },
+  {
+    "de": "Tim lächelte, denn er wusste: Ab morgen würde sogar der Weg zur Arbeit ein kleines Vergnügen sein.",
+    "en": "Tim smiled, for he knew that from tomorrow even the way to work would be a little pleasure."
+  }
+],
+  questions: [
+  {
+    "q": "Warum musste Tim am Montag zu Fuß zur Arbeit gehen?",
+    "options": [
+      "Seine Kette war gerissen.",
+      "Sein Fahrrad wurde gestohlen.",
+      "Er hatte keinen Helm."
+    ],
+    "answer": 0
+  },
+  {
+    "q": "Warum passte ein Mountainbike nicht zu Tim?",
+    "options": [
+      "Es war zu teuer.",
+      "Es war für die Stadt zu schwer.",
+      "Es hatte zu viele Gänge."
+    ],
+    "answer": 1
+  },
+  {
+    "q": "Was war Tim bei dem neuen Fahrrad besonders wichtig?",
+    "options": [
+      "Die Farbe und der Preis",
+      "Eine hohe Geschwindigkeit",
+      "Es soll für die Stadt geeignet sein und genug Gänge haben."
+    ],
+    "answer": 2
+  },
+  {
+    "q": "Was machte Tim nach dem Kauf?",
+    "options": [
+      "Er machte bei Sonne und Wind einen Umweg am Fluss entlang.",
+      "Er fuhr sofort ohne Pause nach Hause.",
+      "Er brachte das Rad zurück ins Geschäft."
+    ],
+    "answer": 0
+  }
+],
+  glossary: {
+  "tims": "Tim's",
+  "altes": "old",
+  "fahrrad": "bicycle",
+  "war": "was",
+  "nach": "after / to",
+  "zehn": "ten",
+  "jahren": "years",
+  "endgültig": "finally / for good",
+  "kaputt": "broken",
+  "als": "when / than",
+  "er": "he",
+  "am": "on the / at the",
+  "montagmorgen": "Monday morning",
+  "losfahren": "to set off (riding)",
+  "wollte": "wanted to",
+  "riss": "snapped / tore",
+  "plötzlich": "suddenly",
+  "die": "the (fem./plural)",
+  "kette": "chain",
+  "und": "and",
+  "musste": "had to",
+  "zu": "to / too",
+  "fuß": "foot (zu Fuß = on foot)",
+  "zur": "to the",
+  "arbeit": "work",
+  "gehen": "to go / walk",
+  "abend": "evening",
+  "beschloss": "decided",
+  "dass": "that",
+  "sich": "himself / oneself",
+  "endlich": "finally / at last",
+  "ein": "a (masc./neut.)",
+  "neues": "new",
+  "rad": "bike / wheel",
+  "kaufen": "to buy",
+  "würde": "would",
+  "samstag": "Saturday",
+  "ging": "went",
+  "in": "in / into",
+  "großes": "big",
+  "fahrradgeschäft": "bicycle shop",
+  "der": "the (masc.) / of the",
+  "innenstadt": "town centre",
+  "dort": "there",
+  "hatte": "had",
+  "qual": "torment (die Qual der Wahl = spoilt for choice)",
+  "wahl": "choice",
+  "es": "it / there",
+  "gab": "gave (es gab = there was/were)",
+  "rennräder": "racing bikes",
+  "mountainbikes": "mountain bikes",
+  "lastenräder": "cargo bikes",
+  "sogar": "even",
+  "falträder": "folding bikes",
+  "freundlicher": "friendly",
+  "verkäufer": "salesman",
+  "namens": "called / named",
+  "herr": "Mr / gentleman",
+  "becker": "Becker (surname)",
+  "kam": "came (kam auf ihn zu = came up to him)",
+  "auf": "on / up (zukommen auf = to approach)",
+  "ihn": "him",
+  "fragte": "asked",
+  "wofür": "for what / what for",
+  "das": "the (neut.) / that",
+  "brauche": "need (subjunctive)",
+  "ich": "I",
+  "möchte": "would like to",
+  "damit": "with it / so that",
+  "jeden": "every",
+  "tag": "day",
+  "fahren": "to ride / drive",
+  "erklärte": "explained",
+  "tim": "Tim",
+  "zwar": "admittedly (und zwar = and indeed)",
+  "mitten": "in the middle",
+  "durch": "through",
+  "stadt": "town / city",
+  "außerdem": "besides / also",
+  "ist": "is",
+  "strecke": "route / stretch",
+  "ziemlich": "quite",
+  "hügelig": "hilly",
+  "deshalb": "therefore / so",
+  "genügend": "enough",
+  "gänge": "gears",
+  "nickte": "nodded",
+  "meinte": "said / thought",
+  "mountainbike": "mountain bike",
+  "für": "for",
+  "schwer": "heavy",
+  "rennrad": "racing bike",
+  "unbequem": "uncomfortable",
+  "wäre": "would be",
+  "stattdessen": "instead",
+  "zeigte": "showed",
+  "ihm": "him / to him",
+  "elegantes": "elegant",
+  "trekkingrad": "trekking bike",
+  "mit": "with",
+  "einundzwanzig": "twenty-one",
+  "gängen": "gears (dative plural)",
+  "schutzblechen": "mudguards (dative plural)",
+  "einem": "a (dative)",
+  "stabilen": "sturdy",
+  "gepäckträger": "luggage rack",
+  "nachdem": "after (conjunction)",
+  "eine": "a (fem.)",
+  "probefahrt": "test ride",
+  "dem": "the (dative)",
+  "parkplatz": "car park",
+  "gemacht": "made / done",
+  "begeistert": "thrilled / enthusiastic",
+  "lief": "ran / worked",
+  "leise": "quiet(ly)",
+  "leicht": "light / smooth(ly)",
+  "gangschaltung": "gear system",
+  "funktionierte": "worked / functioned",
+  "einwandfrei": "perfectly / flawless",
+  "obwohl": "although",
+  "preis": "price",
+  "etwas": "somewhat / something",
+  "höher": "higher",
+  "geplant": "planned",
+  "entschied": "decided (entschied sich für = chose)",
+  "ohne": "without",
+  "langes": "long",
+  "zögern": "hesitation",
+  "dieses": "this",
+  "modell": "model",
+  "zum": "to the / for the",
+  "schluss": "end (zum Schluss = finally)",
+  "kaufte": "bought",
+  "noch": "also / still",
+  "einen": "a (masc. accusative)",
+  "helm": "helmet",
+  "starkes": "strong",
+  "schloss": "lock",
+  "nicht": "not",
+  "gestohlen": "stolen",
+  "werden": "to be / become (passive)",
+  "konnte": "could",
+  "geschäft": "shop",
+  "verließ": "left",
+  "schien": "shone",
+  "sonne": "sun",
+  "frischer": "fresh",
+  "wind": "wind",
+  "wehte": "blew",
+  "straßen": "streets",
+  "eigentlich": "actually",
+  "direkt": "directly / straight",
+  "hause": "home (nach Hause = (to) home)",
+  "aber": "but",
+  "wetter": "weather",
+  "so": "so",
+  "schön": "lovely / beautiful",
+  "umweg": "detour",
+  "machte": "made / did",
+  "radelte": "cycled",
+  "fluss": "river",
+  "entlang": "along",
+  "wo": "where",
+  "blätter": "leaves",
+  "im": "in the",
+  "raschelten": "rustled",
+  "wasser": "water",
+  "glitzerte": "glittered",
+  "wenn": "if / whenever",
+  "weg": "path / way",
+  "bergauf": "uphill",
+  "schaltete": "switched (herunterschalten = to change down)",
+  "einfach": "simply",
+  "gang": "gear",
+  "herunter": "down (herunterschalten = to change down)",
+  "trat": "pedalled / stepped",
+  "entspannt": "relaxed",
+  "weiter": "on / further",
+  "oben": "at the top",
+  "hügel": "hill",
+  "hielt": "stopped (anhalten = to stop)",
+  "an": "(stopped) (anhalten = to stop)",
+  "blickte": "looked",
+  "über": "over",
+  "ganze": "whole",
+  "lächelte": "smiled",
+  "denn": "for / because",
+  "wusste": "knew",
+  "ab": "from (ab morgen = from tomorrow)",
+  "morgen": "tomorrow",
+  "kleines": "small / little",
+  "vergnügen": "pleasure",
+  "sein": "to be"
+}
+};
+/* ===== END STORY DATA ===== */
+document.getElementById('lvl').textContent = 'Niveau / Level: ' + STORY.level;
+
+const pop = document.getElementById('pop');
+const synth = window.speechSynthesis;
+
+// Speech with pauses at punctuation: text is split into chunks at , ; : – — . ! ? and each chunk is
+// spoken as its own utterance; a silent gap (setTimeout) follows each chunk (short for commas, longer for sentence ends).
+const PAUSE = { ',': 100, ';': 250, ':': 250, '–': 250, '—': 250, '.': 300, '!': 300, '?': 300 };
+const SENTENCE_GAP = 650;
+let speechToken = 0;
+
+function germanVoice() {
+  return synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+}
+function chunks(text) {
+  const out = [];
+  const re = /([^,;:–—.!?]+)([,;:–—.!?„“"»«]*)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const words = m[1].replace(/[„“"»«]/g, '').trim();
+    const punct = (m[2].match(/[,;:–—.!?]/g) || []).pop();
+    if (words) out.push({ text: words, pause: punct ? PAUSE[punct] : 0 });
+    else if (punct && out.length) out[out.length - 1].pause = Math.max(out[out.length - 1].pause, PAUSE[punct]);
+  }
+  return out;
+}
+function speakQueue(items) {   // items: [{text, pause}]
+  const token = ++speechToken;
+  const v = germanVoice();
+  let i = 0;
+  (function next() {
+    if (token !== speechToken || i >= items.length) return;
+    const it = items[i++];
+    const u = new SpeechSynthesisUtterance(it.text);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    const go = () => setTimeout(next, it.pause);
+    u.onend = go; u.onerror = go;
+    synth.speak(u);
+  })();
+}
+function speak(text) {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  speakQueue(chunks(text));
+}
+if (synth) synth.getVoices();
+
+// speak the whole story: sentence by sentence, with pauses at punctuation and a longer gap between sentences
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const items = [];
+  STORY.sentences.forEach(s => {
+    const c = chunks(s.de);
+    if (c.length) c[c.length - 1].pause = Math.max(c[c.length - 1].pause, SENTENCE_GAP);
+    items.push(...c);
+  });
+  speakQueue(items);
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
+
+function showPop(anchor, html) {
+  pop.innerHTML = html;
+  pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px';
+  pop.style.top = (r.bottom + scrollY + 6) + 'px';
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function btn(label, title, fn) {
+  const b = document.createElement('button');
+  b.className = 'ic'; b.textContent = label; b.title = title;
+  b.addEventListener('click', e => { e.stopPropagation(); fn(b); });
+  return b;
+}
+
+const main = document.getElementById('story');
+STORY.sentences.forEach(s => {
+  const p = document.createElement('span');
+  p.className = 's';
+  p.appendChild(btn('🔊', 'Satz anhören / Hear sentence', () => speak(s.de)));
+  p.appendChild(btn('💬', 'English', b => showPop(b, esc(s.en))));
+  // split into words (letters incl. umlauts/ß, apostrophes/hyphens inside) and everything else
+  s.de.split(/([A-Za-zÄÖÜäöüß]+(?:[-'][A-Za-zÄÖÜäöüß]+)*)/).forEach(part => {
+    if (!part) return;
+    if (/^[A-Za-zÄÖÜäöüß]/.test(part)) {
+      const key = part.toLowerCase();
+      const en = STORY.glossary[key];
+      if (en === undefined) console.warn('Missing glossary entry:', key);
+      const w = document.createElement('span');
+      w.className = 'w'; w.textContent = part;
+      w.addEventListener('click', e => {
+        e.stopPropagation();
+        showPop(w, '<span class="de">' + esc(part) + '</span> = ' + esc(en ?? '(no translation)') + ' ');
+        const sp = btn('🔊', 'Wort anhören / Hear word', () => speak(part));
+        pop.appendChild(sp);
+      });
+      p.appendChild(w);
+    } else {
+      p.appendChild(document.createTextNode(part));
+    }
+  });
+  main.appendChild(p);
+});
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
+
+document.addEventListener('click', () => { pop.style.display = 'none'; });
+pop.addEventListener('click', e => e.stopPropagation());
+</script>
+</body>
+</html>
