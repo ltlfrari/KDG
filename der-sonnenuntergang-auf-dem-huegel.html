@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Der Sonnenuntergang auf dem Hügel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lora:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; padding:0 16px 4rem; background:#faf6ee; color:#2b2b2b; font-family:"Lora",Georgia,serif; }
+    header { text-align:center; padding:2rem 0 1rem; }
+    h1 { font-family:"Playfair Display",Georgia,serif; font-size:2.5rem; margin:0 0 .4rem; }
+    .sub { font-style:italic; font-size:1.25rem; color:#6b5b4b; margin:0; }
+    .lvl { display:inline-block; margin:.6rem 0 0; font-size:.95rem; font-weight:bold; color:#6b3f1d; background:#f1dfb8; border-radius:999px; padding:.1rem .8rem; }
+    .back { display:block; text-align:center; margin:.5rem 0 1.5rem; color:#6b5b4b; }
+    main { max-width:42rem; margin:0 auto; font-size:1.3rem; line-height:2.2; }
+    .s { display:block; margin-bottom:.6rem; }
+    .ic { cursor:pointer; border:0; background:none; font-size:1.05rem; padding:0 .2rem; vertical-align:middle; }
+    .ic:hover { transform:scale(1.2); }
+    .all { display:block; margin:0 auto 1rem; font-size:1.1rem; cursor:pointer; border:1px solid #c9b79c; background:#fff; border-radius:999px; padding:.3rem 1rem; }
+    .all:hover { background:#f1dfb8; }
+    .comic { max-width:60rem; margin:0 auto 2rem; text-align:center; }
+    .comic img { width:100%; height:auto; border:3px solid #2b2b2b; border-radius:6px; box-shadow:0 4px 14px rgba(0,0,0,.2); }
+    #quiz { max-width:42rem; margin:2.5rem auto 0; font-size:1.15rem; }
+    #quiz h2 { font-family:"Playfair Display",Georgia,serif; text-align:center; }
+    .q { margin:1.4rem 0; }
+    .q p { font-weight:bold; margin:0 0 .4rem; }
+    .opt { display:block; width:100%; text-align:left; font:inherit; cursor:pointer; background:#fff; border:1px solid #c9b79c; border-radius:8px; padding:.45rem .8rem; margin:.3rem 0; }
+    .opt:hover:not(:disabled) { background:#f1dfb8; }
+    .opt:disabled { cursor:default; color:inherit; }
+    .opt.correct { border-color:#2e9e4f; background:#eaf7ee; }
+    .opt.wrong { border-color:#c0392b; background:#fbeaea; }
+    .tick { color:#2e9e4f; font-weight:bold; margin-right:.4rem; }
+    .w { cursor:pointer; border-radius:4px; padding:0 1px; }
+    .w:hover { background:#f1dfb8; }
+    #pop { position:absolute; z-index:10; display:none; background:#fff; border:1px solid #c9b79c;
+           border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,.2); padding:.6rem .8rem;
+           font-size:1.05rem; line-height:1.5; max-width:min(22rem,86vw); }
+    #pop .de { font-weight:bold; margin-right:.3rem; }
+    @media (max-width:480px){ h1{font-size:1.8rem;} main{font-size:1.15rem;} }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Der Sonnenuntergang auf dem Hügel</h1>
+    <p class="sub">Sunset on the Hill</p>
+    <p class="lvl" id="lvl"></p>
+  </header>
+  <a class="back" href="index.html">&larr; Alle Geschichten / All stories</a>
+  <button class="all" id="playAll" title="Ganze Geschichte anhören / Hear whole story">🔊 Ganze Geschichte / Whole story</button>
+  <!-- COMIC: replace this line with the <figure class="comic"> block (see SKILL.md section 8), or delete it if no comic -->
+  <main id="story"></main>
+  <section id="quiz"></section>
+  <div id="pop"></div>
+
+<script>
+/* ===== STORY DATA (edit this block when updating a story) ===== */
+const STORY = {
+  level: "A2",
+  titleDe: "Der Sonnenuntergang auf dem Hügel",
+  titleEn: "Sunset on the Hill",
+  /* one entry per sentence: de = German, en = English translation */
+  sentences: [
+  {
+    "de": "Ben ist sechs Jahre alt und wohnt mit seinem Vater in einer kleinen Stadt.",
+    "en": "Ben is six years old and lives with his father in a small town."
+  },
+  {
+    "de": "Am Samstag sagt der Vater: „Heute gehen wir auf den hohen Hügel hinter der Stadt.“",
+    "en": "On Saturday the father says: \"Today we are going up the high hill behind the town.\""
+  },
+  {
+    "de": "Ben ist froh und nimmt seinen kleinen Rucksack.",
+    "en": "Ben is happy and takes his small backpack."
+  },
+  {
+    "de": "Zuerst geht der Weg durch einen Wald, und Ben läuft schnell.",
+    "en": "First the path goes through a forest, and Ben runs fast."
+  },
+  {
+    "de": "Aber der Weg ist lang und steil.",
+    "en": "But the path is long and steep."
+  },
+  {
+    "de": "Nach einer Stunde ist Ben sehr müde.",
+    "en": "After an hour Ben is very tired."
+  },
+  {
+    "de": "„Papa, ich kann nicht mehr“, sagt er leise.",
+    "en": "\"Dad, I can't go on,\" he says quietly."
+  },
+  {
+    "de": "Der Vater lächelt und sagt: „Kein Problem, komm.“",
+    "en": "The father smiles and says: \"No problem, come.\""
+  },
+  {
+    "de": "Er nimmt Ben auf seine Schultern und geht weiter.",
+    "en": "He takes Ben on his shoulders and walks on."
+  },
+  {
+    "de": "Ben sitzt hoch oben und sieht die Bäume und die Vögel.",
+    "en": "Ben sits high up and sees the trees and the birds."
+  },
+  {
+    "de": "Endlich sind sie oben auf dem Hügel.",
+    "en": "At last they are at the top of the hill."
+  },
+  {
+    "de": "Der Vater stellt Ben auf den Boden, und beide stehen still.",
+    "en": "The father puts Ben down on the ground, and both stand still."
+  },
+  {
+    "de": "Unten liegt die Stadt, und die Sonne geht langsam unter.",
+    "en": "Below lies the town, and the sun slowly sets."
+  },
+  {
+    "de": "Der Himmel ist rot und orange, und in den Häusern gehen die Lichter an.",
+    "en": "The sky is red and orange, and in the houses the lights come on."
+  },
+  {
+    "de": "Ben nimmt die Hand von seinem Vater und sagt: „Das ist wunderschön!“",
+    "en": "Ben takes his father's hand and says: \"That is beautiful!\""
+  }
+],
+  questions: [
+  {
+    "q": "Wie alt ist Ben?",
+    "options": [
+      "Sechs Jahre alt",
+      "Acht Jahre alt",
+      "Zehn Jahre alt"
+    ],
+    "answer": 0
+  },
+  {
+    "q": "Warum trägt der Vater Ben?",
+    "options": [
+      "Ben hat Hunger.",
+      "Ben ist müde.",
+      "Ben ist krank."
+    ],
+    "answer": 1
+  },
+  {
+    "q": "Wo trägt der Vater Ben?",
+    "options": [
+      "Auf den Schultern",
+      "Auf dem Rücken",
+      "In den Armen"
+    ],
+    "answer": 0
+  },
+  {
+    "q": "Was sehen Vater und Sohn oben auf dem Hügel?",
+    "options": [
+      "Einen Wald und viele Tiere",
+      "Die Stadt und den Sonnenuntergang",
+      "Ein großes Haus"
+    ],
+    "answer": 1
+  }
+],
+  glossary: {
+  "ben": "Ben (name)",
+  "ist": "is",
+  "sechs": "six",
+  "jahre": "years",
+  "alt": "old",
+  "und": "and",
+  "wohnt": "lives",
+  "mit": "with",
+  "seinem": "his (dative)",
+  "vater": "father",
+  "in": "in",
+  "einer": "a (fem. dative)",
+  "kleinen": "small",
+  "stadt": "town",
+  "am": "on the",
+  "samstag": "Saturday",
+  "sagt": "says",
+  "der": "the (masc.)",
+  "heute": "today",
+  "gehen": "to go / walk (we go)",
+  "wir": "we",
+  "auf": "on / up",
+  "den": "the (masc. accusative)",
+  "hohen": "high",
+  "hügel": "hill",
+  "hinter": "behind",
+  "froh": "happy",
+  "nimmt": "takes",
+  "seinen": "his (accusative)",
+  "rucksack": "backpack",
+  "zuerst": "first",
+  "geht": "goes / walks",
+  "weg": "path / way",
+  "durch": "through",
+  "einen": "a (masc. accusative)",
+  "wald": "forest",
+  "läuft": "runs",
+  "schnell": "fast",
+  "aber": "but",
+  "lang": "long",
+  "steil": "steep",
+  "nach": "after",
+  "stunde": "hour",
+  "sehr": "very",
+  "müde": "tired",
+  "papa": "dad",
+  "ich": "I",
+  "kann": "can",
+  "nicht": "not",
+  "mehr": "more (nicht mehr = no longer)",
+  "er": "he",
+  "leise": "quietly",
+  "lächelt": "smiles",
+  "kein": "no",
+  "problem": "problem",
+  "komm": "come",
+  "schultern": "shoulders",
+  "seine": "his (accusative plural)",
+  "weiter": "on / further",
+  "sitzt": "sits",
+  "hoch": "high",
+  "oben": "up / at the top",
+  "sieht": "sees",
+  "die": "the (fem./plural)",
+  "bäume": "trees",
+  "vögel": "birds",
+  "endlich": "at last",
+  "sind": "are",
+  "sie": "they",
+  "dem": "the (dative)",
+  "stellt": "puts / stands (something)",
+  "boden": "ground",
+  "beide": "both",
+  "stehen": "to stand",
+  "still": "still / quiet",
+  "unten": "below",
+  "liegt": "lies",
+  "sonne": "sun",
+  "langsam": "slowly",
+  "unter": "under (geht unter = sets)",
+  "himmel": "sky",
+  "rot": "red",
+  "orange": "orange",
+  "häusern": "houses (dative plural)",
+  "lichter": "lights",
+  "an": "on (gehen an = come on)",
+  "hand": "hand",
+  "von": "of / from",
+  "das": "that / the (neut.)",
+  "wunderschön": "beautiful / wonderful",
+  "trägt": "carries",
+  "hat": "has",
+  "hunger": "hunger",
+  "krank": "ill / sick",
+  "wo": "where",
+  "rücken": "back",
+  "armen": "arms",
+  "sehen": "see",
+  "sohn": "son",
+  "sonnenuntergang": "sunset",
+  "ein": "a",
+  "großes": "big",
+  "haus": "house",
+  "viele": "many",
+  "tiere": "animals",
+  "wie": "how",
+  "warum": "why",
+  "was": "what",
+  "acht": "eight",
+  "zehn": "ten"
+}
+};
+/* ===== END STORY DATA ===== */
+document.getElementById('lvl').textContent = 'Niveau / Level: ' + STORY.level;
+
+const pop = document.getElementById('pop');
+const synth = window.speechSynthesis;
+
+// Speech with pauses at punctuation: text is split into chunks at , ; : – — . ! ? and each chunk is
+// spoken as its own utterance; a silent gap (setTimeout) follows each chunk (short for commas, longer for sentence ends).
+const PAUSE = { ',': 100, ';': 250, ':': 250, '–': 250, '—': 250, '.': 300, '!': 300, '?': 300 };
+const SENTENCE_GAP = 650;
+let speechToken = 0;
+
+function germanVoice() {
+  return synth.getVoices().find(v => v.lang && v.lang.replace('_','-').toLowerCase().startsWith('de'));
+}
+function chunks(text) {
+  const out = [];
+  const re = /([^,;:–—.!?]+)([,;:–—.!?„“"»«]*)/g;
+  let m;
+  while ((m = re.exec(text))) {
+    const words = m[1].replace(/[„“"»«]/g, '').trim();
+    const punct = (m[2].match(/[,;:–—.!?]/g) || []).pop();
+    if (words) out.push({ text: words, pause: punct ? PAUSE[punct] : 0 });
+    else if (punct && out.length) out[out.length - 1].pause = Math.max(out[out.length - 1].pause, PAUSE[punct]);
+  }
+  return out;
+}
+function speakQueue(items) {   // items: [{text, pause}]
+  const token = ++speechToken;
+  const v = germanVoice();
+  let i = 0;
+  (function next() {
+    if (token !== speechToken || i >= items.length) return;
+    const it = items[i++];
+    const u = new SpeechSynthesisUtterance(it.text);
+    u.lang = 'de-DE'; if (v) u.voice = v; u.rate = 0.85;
+    const go = () => setTimeout(next, it.pause);
+    u.onend = go; u.onerror = go;
+    synth.speak(u);
+  })();
+}
+function speak(text) {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  speakQueue(chunks(text));
+}
+if (synth) synth.getVoices();
+
+// speak the whole story: sentence by sentence, with pauses at punctuation and a longer gap between sentences
+function speakAll() {
+  if (!synth) { alert('Speech is not supported in this browser.'); return; }
+  synth.cancel();
+  const items = [];
+  STORY.sentences.forEach(s => {
+    const c = chunks(s.de);
+    if (c.length) c[c.length - 1].pause = Math.max(c[c.length - 1].pause, SENTENCE_GAP);
+    items.push(...c);
+  });
+  speakQueue(items);
+}
+document.getElementById('playAll').addEventListener('click', e => { e.stopPropagation(); speakAll(); });
+
+function showPop(anchor, html) {
+  pop.innerHTML = html;
+  pop.style.display = 'block';
+  const r = anchor.getBoundingClientRect();
+  const left = Math.max(8, Math.min(r.left + scrollX, scrollX + innerWidth - pop.offsetWidth - 8));
+  pop.style.left = left + 'px';
+  pop.style.top = (r.bottom + scrollY + 6) + 'px';
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function btn(label, title, fn) {
+  const b = document.createElement('button');
+  b.className = 'ic'; b.textContent = label; b.title = title;
+  b.addEventListener('click', e => { e.stopPropagation(); fn(b); });
+  return b;
+}
+
+const main = document.getElementById('story');
+STORY.sentences.forEach(s => {
+  const p = document.createElement('span');
+  p.className = 's';
+  p.appendChild(btn('🔊', 'Satz anhören / Hear sentence', () => speak(s.de)));
+  p.appendChild(btn('💬', 'English', b => showPop(b, esc(s.en))));
+  // split into words (letters incl. umlauts/ß, apostrophes/hyphens inside) and everything else
+  s.de.split(/([A-Za-zÄÖÜäöüß]+(?:[-'][A-Za-zÄÖÜäöüß]+)*)/).forEach(part => {
+    if (!part) return;
+    if (/^[A-Za-zÄÖÜäöüß]/.test(part)) {
+      const key = part.toLowerCase();
+      const en = STORY.glossary[key];
+      if (en === undefined) console.warn('Missing glossary entry:', key);
+      const w = document.createElement('span');
+      w.className = 'w'; w.textContent = part;
+      w.addEventListener('click', e => {
+        e.stopPropagation();
+        showPop(w, '<span class="de">' + esc(part) + '</span> = ' + esc(en ?? '(no translation)') + ' ');
+        const sp = btn('🔊', 'Wort anhören / Hear word', () => speak(part));
+        pop.appendChild(sp);
+      });
+      p.appendChild(w);
+    } else {
+      p.appendChild(document.createTextNode(part));
+    }
+  });
+  main.appendChild(p);
+});
+
+// quiz: clicking an option reveals the correct answer with a green tick
+const quiz = document.getElementById('quiz');
+if (STORY.questions && STORY.questions.length) {
+  const h = document.createElement('h2'); h.textContent = 'Fragen zur Geschichte'; quiz.appendChild(h);
+  STORY.questions.forEach((qq, i) => {
+    const box = document.createElement('div'); box.className = 'q';
+    const p = document.createElement('p'); p.textContent = (i + 1) + '. ' + qq.q; box.appendChild(p);
+    const btns = qq.options.map((o, j) => {
+      const b = document.createElement('button'); b.className = 'opt'; b.textContent = o;
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        btns.forEach((x, k) => {
+          x.disabled = true;
+          if (k === qq.answer) { x.classList.add('correct'); x.insertAdjacentHTML('afterbegin', '<span class="tick">✔</span>'); }
+        });
+        if (j !== qq.answer) b.classList.add('wrong');
+      });
+      box.appendChild(b); return b;
+    });
+    quiz.appendChild(box);
+  });
+}
+
+document.addEventListener('click', () => { pop.style.display = 'none'; });
+pop.addEventListener('click', e => e.stopPropagation());
+</script>
+</body>
+</html>
